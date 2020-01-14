@@ -1,6 +1,10 @@
 # buscador_gif
 
 A new Flutter application.
+Aplicativo desenvolvido em Curso.
+Este aplicativo é um buscador de Gifs, onde foi possivel aprender: 
+consumo de api externa, navegação entre paginas, modo de compartilhamento, 
+assim como um aprendizado enorme de como atualizar os gifs, sistema de busca de uma forma rapida e precisa.
 
 ## Getting Started
 

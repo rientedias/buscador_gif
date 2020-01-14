@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:buscador_gif/ui/gif_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:share/share.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -18,7 +21,7 @@ class _HomePageState extends State<HomePage> {
           'https://api.giphy.com/v1/gifs/trending?api_key=tM1iGa0QiMSnvEh4mgHhKedVAAZh5vrk&limit=25&rating=G');
     else
       response = await http.get(
-          'https://api.giphy.com/v1/gifs/search?api_key=tM1iGa0QiMSnvEh4mgHhKedVAAZh5vrk&q=$_search&limit=20&offset=$_offset&rating=G&lang=en');
+          'https://api.giphy.com/v1/gifs/search?api_key=tM1iGa0QiMSnvEh4mgHhKedVAAZh5vrk&q=$_search&limit=19&offset=$_offset&rating=G&lang=en');
 
     return json.decode(response.body);
   }
@@ -53,6 +56,11 @@ class _HomePageState extends State<HomePage> {
                   border: OutlineInputBorder()),
               style: TextStyle(color: Colors.white, fontSize: 18.0),
               textAlign: TextAlign.center,
+              onSubmitted: (text) {
+                setState(() {
+                  _search = text;
+                });
+              },
             ),
           ),
           Expanded(
@@ -85,23 +93,65 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  int _getCount(List data) {
+    if (_search == null || _search.isEmpty) {
+      return data.length;
+    } else {
+      return data.length + 1;
+    }
+  }
+
   Widget _createGifTable(BuildContext context, AsyncSnapshot snapshot) {
     return GridView.builder(
         padding: EdgeInsets.all(16.0),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10.0,
-          mainAxisSpacing: 10.0
-        ),
-        itemCount: snapshot.data['data'].length,
-        itemBuilder: (context, index){
-          return GestureDetector(
-            child:  Image.network(snapshot.data['data'][index]['images']['fixed_height']['url'],
-            height: 300.0,
-            fit: BoxFit.cover,
-            ),
-          );
-        }
-    );
+            crossAxisCount: 2, crossAxisSpacing: 10.0, mainAxisSpacing: 10.0),
+        itemCount: _getCount(snapshot.data['data']),
+        itemBuilder: (context, index) {
+          if (_search == null || index < snapshot.data['data'].length)
+            return GestureDetector(
+              child: FadeInImage.memoryNetwork(
+                placeholder:kTransparentImage,
+                image: snapshot.data['data'][index]['images']['fixed_height']['url'],
+                height: 300.0,
+                fit: BoxFit.cover
+              ),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            GifPage(snapshot.data['data'][index])));
+              },
+              onLongPress: () {
+                Share.share(snapshot.data['data'][index]['images']
+                    ['fixed_height']['url']);
+              },
+            );
+          else
+            return Container(
+              child: GestureDetector(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 70.0,
+                    ),
+                    Text(
+                      'Carregar mais...',
+                      style: TextStyle(color: Colors.white, fontSize: 22.0),
+                    )
+                  ],
+                ),
+                onTap: () {
+                  setState(() {
+                    _offset += 19;
+                  });
+                },
+              ),
+            );
+        });
   }
 }
